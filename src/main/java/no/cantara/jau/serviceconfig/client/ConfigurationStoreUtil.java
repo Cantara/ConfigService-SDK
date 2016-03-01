@@ -35,14 +35,17 @@ public class ConfigurationStoreUtil {
         }
     }
 
-    public static Path toFile(NamedPropertiesStore store, String targetDirectory) throws IOException {
+    public static Path toFile(NamedPropertiesStore store, String targetDirectoryPath) throws IOException {
         Properties props = new Properties();
         props.putAll(store.properties);
 
-        String targetPath = targetDirectory + File.separator + store.fileName;
-        log.debug("Writing NamedPropertiesStore to {}", targetPath);
-        OutputStream out = new FileOutputStream(targetPath);
+        File targetDirectory = new File(targetDirectoryPath);
+        targetDirectory.mkdirs();
+        File targetFile = new File(targetDirectory, store.fileName);
+
+        log.debug("Writing NamedPropertiesStore to {}", targetFile);
+        OutputStream out = new FileOutputStream(targetFile);
         props.store(out, null);
-        return new File(targetPath).toPath();
+        return targetFile.toPath();
     }
 }

@@ -14,8 +14,8 @@ public class ClientResponseErrorHandler {
 
     private static final Logger log = LoggerFactory.getLogger(ClientResponseErrorHandler.class);
 
-    public static void handle(int responseCode, String responseMessage, String url) throws UnexpectedException, NoContentException {
-        log.warn("registerClient failed. url={}, responseCode={}, responseMessage={}",
+    public static void handle(int responseCode, String responseMessage, String url, String methodName) throws UnexpectedException, NoContentException {
+        log.warn(methodName + " failed. url={}, responseCode={}, responseMessage={}",
                 url, responseCode, responseMessage);
 
         if (responseCode == HttpURLConnection.HTTP_BAD_REQUEST) {
@@ -29,7 +29,7 @@ public class ClientResponseErrorHandler {
         } else if (responseCode == HttpURLConnection.HTTP_PRECON_FAILED) {
             throw new IllegalStateException("412 http precondition failed. Client not registered in ConfigServer.");
         } else {
-            log.warn("checkForUpdate failed. responseCode={}, responseMessage={}", responseCode, responseMessage);
+            log.warn(methodName + " failed. responseCode={}, responseMessage={}", responseCode, responseMessage);
             throw new UnexpectedException("Got unexpected responseCode: " + responseCode + ", with message: " +
                     responseMessage);
         }

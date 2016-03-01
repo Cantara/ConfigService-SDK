@@ -3,7 +3,9 @@ package no.cantara.jau.serviceconfig.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.cantara.jau.serviceconfig.dto.*;
+import no.cantara.jau.serviceconfig.dto.CheckForUpdateRequest;
+import no.cantara.jau.serviceconfig.dto.ClientConfig;
+import no.cantara.jau.serviceconfig.dto.ClientRegistrationRequest;
 import no.cantara.jau.serviceconfig.dto.event.EventExtractionConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +14,10 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * @author <a href="mailto:erik-dev@fjas.no">Erik Drolshammer</a> 2015-07-13.
@@ -58,7 +63,7 @@ public class ConfigServiceClient {
         String responseMessage = connection.getResponseMessage();
 
         if (responseCode != HttpURLConnection.HTTP_OK) {
-            ClientResponseErrorHandler.handle(responseCode, responseMessage, url);
+            ClientResponseErrorHandler.handle(responseCode, responseMessage, url, "registerClient");
         }
 
         try (Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"))) {
@@ -79,7 +84,9 @@ public class ConfigServiceClient {
         final Properties applicationState = new Properties();
         applicationState.put(CLIENT_ID, clientConfig.clientId);
         applicationState.put(LAST_CHANGED, clientConfig.serviceConfig.getLastChanged());
-        applicationState.put(COMMAND, clientConfig.serviceConfig.getStartServiceScript());
+        if (clientConfig.serviceConfig.getStartServiceScript() != null) {
+            applicationState.put(COMMAND, clientConfig.serviceConfig.getStartServiceScript());
+        }
 
         ObjectMapper mapper = new ObjectMapper();
         try {
@@ -171,7 +178,7 @@ public class ConfigServiceClient {
         String responseMessage = connection.getResponseMessage();
         int responseCode = connection.getResponseCode();
         if (responseCode != HttpURLConnection.HTTP_OK) {
-            ClientResponseErrorHandler.handle(responseCode, responseMessage, url);
+            ClientResponseErrorHandler.handle(responseCode, responseMessage, url, "checkForUpdate");
         }
 
         try (Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"))) {
