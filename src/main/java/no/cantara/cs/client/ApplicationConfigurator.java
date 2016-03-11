@@ -15,6 +15,9 @@ public class ApplicationConfigurator {
 
     private ConfigServiceClient configServiceClient;
     private boolean allowFallbackToLocalConfiguration = true;
+    private String artifactId;
+    private String clientId;
+    private String configurationStoreDirectory = ".";
 
     public ApplicationConfigurator(ConfigServiceClient configServiceClient) {
         this.configServiceClient = configServiceClient;
@@ -25,7 +28,22 @@ public class ApplicationConfigurator {
         return this;
     }
 
-    public void configureApplication(String artifactId, String configurationStoreDirectory) throws IOException {
+    public ApplicationConfigurator setArtifactId(String artifactId) {
+        this.artifactId = artifactId;
+        return this;
+    }
+
+    public ApplicationConfigurator setClientId(String clientId) {
+        this.clientId = clientId;
+        return this;
+    }
+
+    public ApplicationConfigurator setConfigurationStoreDirectory(String configurationStoreDirectory) {
+        this.configurationStoreDirectory = configurationStoreDirectory;
+        return this;
+    }
+
+    public void configureApplication() throws IOException {
         Properties applicationState = configServiceClient.getApplicationState();
 
         ClientConfig clientConfig = null;
@@ -47,7 +65,9 @@ public class ApplicationConfigurator {
         } else {
             log.info("No previous application state persisted, registering new configservice client, artifactId={}", artifactId);
             try {
-                clientConfig = configServiceClient.registerClient(new ClientRegistrationRequest(artifactId));
+                ClientRegistrationRequest request = new ClientRegistrationRequest(artifactId);
+                request.clientId = clientId;
+                clientConfig = configServiceClient.registerClient(request);
             } catch (Exception e) {
                 if (allowFallbackToLocalConfiguration) {
                     log.error("registerClient failed - falling back to local configuration files", e);

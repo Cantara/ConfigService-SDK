@@ -7,6 +7,7 @@ import java.util.Map;
  * @author <a href="mailto:erik-dev@fjas.no">Erik Drolshammer</a> 2015-09-04.
  */
 public class ClientRegistrationRequest {
+    public String clientId;
     public String artifactId;
     public Map<String, String> envInfo;
     public String tags;
