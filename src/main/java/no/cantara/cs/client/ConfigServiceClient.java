@@ -44,7 +44,7 @@ public class ConfigServiceClient {
     }
 
     public ClientConfig registerClient(ClientRegistrationRequest request) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+        HttpURLConnection connection = (HttpURLConnection) new URL(url + "/registration").openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
         if (username != null && password != null) {
@@ -160,7 +160,7 @@ public class ConfigServiceClient {
 
 
     public ClientConfig checkForUpdate(String clientId, CheckForUpdateRequest checkForUpdateRequest) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url + "/" + clientId).openConnection();
+        HttpURLConnection connection = (HttpURLConnection) new URL(url + "/" + clientId + "/sync").openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
         if (username != null && password != null) {
