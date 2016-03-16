@@ -5,13 +5,13 @@ package no.cantara.cs.dto;
  */
 public class ClientConfig {
     public String clientId;
-    public Config config;
+    public ApplicationConfig config;
 
     //for jackson
     private ClientConfig() {
     }
 
-    public ClientConfig(String clientId, Config config) {
+    public ClientConfig(String clientId, ApplicationConfig config) {
         this.clientId = clientId;
         this.config = config;
     }

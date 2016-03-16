@@ -17,7 +17,7 @@ public class ClientHeartbeatData implements Serializable {
         // For Jackson
     }
 
-    public ClientHeartbeatData(ClientRegistrationRequest registration, Config config) {
+    public ClientHeartbeatData(ClientRegistrationRequest registration, ApplicationConfig config) {
         artifactId = registration.artifactId;
         tags = registration.tags;
         clientName = registration.clientName;
@@ -26,7 +26,7 @@ public class ClientHeartbeatData implements Serializable {
         timeOfContact = Instant.now().toString();
     }
 
-    public ClientHeartbeatData(CheckForUpdateRequest checkForUpdateRequest, Config config, String artifactId) {
+    public ClientHeartbeatData(CheckForUpdateRequest checkForUpdateRequest, ApplicationConfig config, String artifactId) {
         this.artifactId = artifactId;
         tags = checkForUpdateRequest.tags;
         clientName = checkForUpdateRequest.clientName;

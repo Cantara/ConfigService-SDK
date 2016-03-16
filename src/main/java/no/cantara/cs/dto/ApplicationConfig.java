@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * @author <a href="mailto:erik-dev@fjas.no">Erik Drolshammer</a> 2015-07-09.
  */
-public class Config implements Serializable {
+public class ApplicationConfig implements Serializable {
 
 	private static final long serialVersionUID = -7717945124215182099L;
 
@@ -37,10 +37,10 @@ public class Config implements Serializable {
     private String startServiceScript;
 
     //for jackson
-    private Config() {
+    private ApplicationConfig() {
     }
 
-    public Config(String name) {
+    public ApplicationConfig(String name) {
         this.name = name;
         setUpdated();
         this.downloadItems = new ArrayList<>();
@@ -122,7 +122,7 @@ public class Config implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Config that = (Config) o;
+        ApplicationConfig that = (ApplicationConfig) o;
 
         if (!id.equals(that.id)) return false;
         if (!name.equals(that.name)) return false;
