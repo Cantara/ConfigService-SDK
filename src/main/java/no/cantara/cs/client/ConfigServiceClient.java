@@ -177,6 +177,11 @@ public class ConfigServiceClient {
 
         String responseMessage = connection.getResponseMessage();
         int responseCode = connection.getResponseCode();
+
+        if (responseCode == HttpURLConnection.HTTP_NO_CONTENT) {
+            return null;
+        }
+
         if (responseCode != HttpURLConnection.HTTP_OK) {
             ClientResponseErrorHandler.handle(responseCode, responseMessage, url, "checkForUpdate");
         }
