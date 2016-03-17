@@ -2,6 +2,7 @@ package no.cantara.cs.dto;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -13,15 +14,15 @@ public class NamedPropertiesStore implements Serializable {
 	private static final long serialVersionUID = 755323393221223803L;
 	
 	public String fileName;
-    public final Map<String, String> properties;
+    public final LinkedHashMap<String, String> properties;
 
-    public NamedPropertiesStore(Map<String, String> properties, String fileName) {
+    public NamedPropertiesStore(LinkedHashMap<String, String> properties, String fileName) {
         this.properties = properties;
         this.fileName = fileName;
     }
 
     public NamedPropertiesStore() {
-        this.properties = new HashMap<>();
+        this.properties = new LinkedHashMap<>();
     }
 
     @Override
