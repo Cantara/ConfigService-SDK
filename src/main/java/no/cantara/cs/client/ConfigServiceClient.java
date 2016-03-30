@@ -24,23 +24,30 @@ import java.util.Properties;
  */
 public class ConfigServiceClient {
     public static final Charset CHARSET = Charset.forName("UTF-8");
-    public static final String APPLICATION_STATE_FILENAME = "applicationState.properties";
     public static final String CLIENT_ID = "clientId";
     public static final String LAST_CHANGED = "lastChanged";
     public static final String COMMAND = "command";
     public static final String EVENT_EXTRACTION_CONFIGS = "eventExtractionConfigs";
+    private static final String DEFAULT_APPLICATION_STATE_FILENAME = "applicationState.properties";
     private static final Logger log = LoggerFactory.getLogger(ConfigServiceClient.class);
     private static final ObjectMapper mapper = new ObjectMapper();
 
     private final String url;
     private final String username;
     private final String password;
+    private String applicationStateFilename;
 
 
     public ConfigServiceClient(String url, String username, String password) {
         this.url = url;
         this.username = username;
         this.password = password;
+        this.applicationStateFilename = DEFAULT_APPLICATION_STATE_FILENAME;
+    }
+
+    public ConfigServiceClient withApplicationStateFilename(String applicationStateFilename) {
+        this.applicationStateFilename = applicationStateFilename;
+        return this;
     }
 
     public ClientConfig registerClient(ClientRegistrationRequest request) throws IOException {
@@ -98,7 +105,7 @@ public class ConfigServiceClient {
         }
         OutputStream output = null;
         try {
-            output = new FileOutputStream(APPLICATION_STATE_FILENAME);
+            output = new FileOutputStream(applicationStateFilename);
             // save properties to project root folder
             applicationState.store(output, null);
         } catch (IOException io) {
@@ -114,14 +121,14 @@ public class ConfigServiceClient {
         }
     }
     public Properties getApplicationState() {
-        if (!new File(APPLICATION_STATE_FILENAME).exists()) {
+        if (!new File(applicationStateFilename).exists()) {
             return null;
         }
 
         Properties properties = new Properties();
         InputStream input = null;
         try {
-            input = new FileInputStream(APPLICATION_STATE_FILENAME);
+            input = new FileInputStream(applicationStateFilename);
             properties.load(input);
             return properties;
         } catch (IOException io) {
@@ -152,7 +159,7 @@ public class ConfigServiceClient {
     }
 
     public void cleanApplicationState() {
-        File applicationStatefile = new File(APPLICATION_STATE_FILENAME);
+        File applicationStatefile = new File(applicationStateFilename);
         if (applicationStatefile.exists()) {
             applicationStatefile.delete();
         }
@@ -201,4 +208,7 @@ public class ConfigServiceClient {
         return url;
     }
 
+    public String getApplicationStateFilename() {
+        return applicationStateFilename;
+    }
 }
