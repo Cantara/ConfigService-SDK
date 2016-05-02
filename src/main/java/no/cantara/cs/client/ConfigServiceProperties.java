@@ -10,6 +10,7 @@ public class ConfigServiceProperties {
     static final String CONFIG_SERVICE_ARTIFACT_ID = "configservice.artifactid";
     static final String CONFIG_SERVICE_CLIENT_ID = "configservice.clientid";
     static final String CONFIG_SERVICE_CONFIGURATION_STORE_DIRECTORY = "configservice.configuration.store.directory";
+    static final String CONFIG_SERVICE_DOWNLOAD_ITEM_DIRECTORY = "configservice.download.item.directory";
     static final String CONFIG_SERVICE_ALLOW_FALLBACK_TO_LOCAL_CONFIG = "configservice.allow.fallback.to.local.config";
 
     private final Properties propertiesFromFile;
@@ -27,6 +28,7 @@ public class ConfigServiceProperties {
                 .setArtifactId(getArtifactId())
                 .setClientId(getClientId())
                 .setConfigurationStoreDirectory(getConfigurationStoreDirectory())
+                .setDownloadItemDirectory(getDownloadItemDirectory())
                 .setAllowFallbackToLocalConfiguration(isAllowFallbackToLocalConfig());
     }
 
@@ -47,6 +49,9 @@ public class ConfigServiceProperties {
     }
     public String getConfigurationStoreDirectory() {
         return getStringFromEnvOrPropertiesFile(CONFIG_SERVICE_CONFIGURATION_STORE_DIRECTORY);
+    }
+    public String getDownloadItemDirectory() {
+        return getStringFromEnvOrPropertiesFile(CONFIG_SERVICE_DOWNLOAD_ITEM_DIRECTORY);
     }
     public Boolean isAllowFallbackToLocalConfig() {
         return  Boolean.valueOf(getStringFromEnvOrPropertiesFile(CONFIG_SERVICE_ALLOW_FALLBACK_TO_LOCAL_CONFIG));

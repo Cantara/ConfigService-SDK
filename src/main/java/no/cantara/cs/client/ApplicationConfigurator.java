@@ -1,13 +1,14 @@
 package no.cantara.cs.client;
 
-import no.cantara.cs.dto.CheckForUpdateRequest;
-import no.cantara.cs.dto.ClientConfig;
-import no.cantara.cs.dto.ClientRegistrationRequest;
+import java.io.IOException;
+import java.util.Properties;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.Properties;
+import no.cantara.cs.dto.CheckForUpdateRequest;
+import no.cantara.cs.dto.ClientConfig;
+import no.cantara.cs.dto.ClientRegistrationRequest;
 
 public class ApplicationConfigurator {
 
@@ -18,6 +19,7 @@ public class ApplicationConfigurator {
     private String artifactId;
     private String clientId;
     private String configurationStoreDirectory = ".";
+    private String downloadItemDirectory = ".";
 
     public ApplicationConfigurator(ConfigServiceClient configServiceClient) {
         this.configServiceClient = configServiceClient;
@@ -40,6 +42,11 @@ public class ApplicationConfigurator {
 
     public ApplicationConfigurator setConfigurationStoreDirectory(String configurationStoreDirectory) {
         this.configurationStoreDirectory = configurationStoreDirectory;
+        return this;
+    }
+
+    public ApplicationConfigurator setDownloadItemDirectory(String downloadItemDirectory) {
+        this.downloadItemDirectory = downloadItemDirectory;
         return this;
     }
 
@@ -76,9 +83,12 @@ public class ApplicationConfigurator {
                 }
             }
         }
-        if (clientConfig != null) {
+        if (clientConfig != null && configurationStoreDirectory != null) {
             configServiceClient.saveApplicationState(clientConfig);
             ConfigurationStoreUtil.toFiles(clientConfig.config.getConfigurationStores(), configurationStoreDirectory);
+        }
+        if (clientConfig != null && downloadItemDirectory != null) {
+            DownloadUtil.downloadAllFiles(clientConfig.config.getDownloadItems(), downloadItemDirectory);
         }
     }
 

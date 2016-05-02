@@ -1,20 +1,32 @@
 package no.cantara.cs.client;
 
-import no.cantara.cs.dto.DownloadItem;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.RegionUtils;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3EncryptionClient;
+import com.amazonaws.services.s3.model.CryptoConfiguration;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
+
+import no.cantara.cs.dto.DownloadItem;
 
 /**
  * @author <a href="mailto:erik-dev@fjas.no">Erik Drolshammer</a> 2015-07-13.
@@ -22,7 +34,7 @@ import java.util.List;
 public class DownloadUtil {
     private static final Logger log = LoggerFactory.getLogger(DownloadUtil.class);
 
-/**   Example go handling different proxies
+/*   Example go handling different proxies
     public void setProxy() {
         if (isUseHTTPProxy()) {
             // HTTP/HTTPS Proxy
@@ -47,7 +59,7 @@ public class DownloadUtil {
             }
         }
     }
-*/
+     */
 
     public static List<Path> downloadAllFiles(List<DownloadItem> downloadItems, String targetDirectory) {
         Path path;
@@ -67,25 +79,36 @@ public class DownloadUtil {
     /**
      * http://www.codejava.net/java-se/networking/use-httpurlconnection-to-download-file-from-an-http-url
      * Downloads a file from a URL
-     * @param sourceUrl HTTP URL of the file to be downloaded
-     * @param filenameOverride  filename to store the downloaded file as
-     * @param username  username  to authenticate against the server
-     * @param password  password  to authenticate against the server
-     * @param targetDirectory path of the directory to save the file
-     * @return  Path to the downloaded file
+     *
+     * @param sourceUrl        HTTP URL of the file to be downloaded
+     * @param filenameOverride filename to store the downloaded file as
+     * @param username         username  to authenticate against the server
+     * @param password         password  to authenticate against the server
+     * @param targetDirectory  path of the directory to save the file
+     * @return Path to the downloaded file
      */
     public static Path downloadFile(String sourceUrl, String filenameOverride, String username, String password, String targetDirectory) {
-        final int BUFFER_SIZE = 4096;
-        URL url;
+        URI uri;
         try {
-            url = new URL(sourceUrl);
-        } catch (MalformedURLException e) {
+            uri = new URI(sourceUrl);
+        } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }
 
+        String scheme = uri.getScheme();
+        if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+            return downloadFileWithHttp(uri, filenameOverride, username, password, targetDirectory);
+        }
+        if ("s3".equalsIgnoreCase(scheme)) {
+            return downloadFileWithS3(uri, filenameOverride, targetDirectory);
+        }
+        throw new RuntimeException("Unsupported scheme: " + scheme);
+    }
+
+    private static Path downloadFileWithHttp(URI uri, String filenameOverride, String username, String password, String targetDirectory) {
         HttpURLConnection httpConn;
         try {
-            httpConn = (HttpURLConnection) url.openConnection();
+            httpConn = (HttpURLConnection) uri.toURL().openConnection();
             if (username != null && password != null) {
                 String authorizationValue = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
                 httpConn.setRequestProperty("Authorization", authorizationValue);
@@ -112,18 +135,16 @@ public class DownloadUtil {
                     }
                 } else {
                     // extracts file name from URL
-                    fileName = sourceUrl.substring(sourceUrl.lastIndexOf("/") + 1, sourceUrl.length());
+                    String path = uri.getPath();
+                    fileName = path.substring(path.lastIndexOf("/") + 1, path.length());
                 }
-
             }
-
 
             log.debug("Content-Type = " + httpConn.getContentType());
             log.debug("Content-Length = " + httpConn.getContentLength());
             log.debug("fileName = " + fileName);
 
             // opens input stream from the HTTP connection
-            InputStream inputStream = httpConn.getInputStream();
             File targetDirectoryAsFile = new File(targetDirectory);
             if (!targetDirectoryAsFile.exists()) {
                 targetDirectoryAsFile.mkdirs();
@@ -131,15 +152,16 @@ public class DownloadUtil {
 
             // opens an output stream to save into file
             String targetPath = targetDirectory + File.separator + fileName;
-            FileOutputStream outputStream = new FileOutputStream(targetPath);
-            int bytesRead = -1;
-            byte[] buffer = new byte[BUFFER_SIZE];
-            while ((bytesRead = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
 
-            outputStream.close();
-            inputStream.close();
+            try (FileOutputStream outputStream = new FileOutputStream(targetPath);
+                 InputStream inputStream = httpConn.getInputStream()) {
+                final int BUFFER_SIZE = 4096;
+                int bytesRead;
+                byte[] buffer = new byte[BUFFER_SIZE];
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+            }
 
             log.info("File downloaded to {}", targetPath);
             httpConn.disconnect();
@@ -149,22 +171,86 @@ public class DownloadUtil {
         }
     }
 
-     /*
-    public static Path download(String sourceUrl, String targetDirectory) {
-        URL url = null;
-        try {
-            url = new URL(sourceUrl);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+    private static Path downloadFileWithS3(URI uri, String filenameOverride, String targetDirectory) {
+        S3Spec spec = S3Spec.parse(uri);
+
+        String fileName = filenameOverride;
+        if (fileName == null || fileName.isEmpty()) {
+            String path = uri.getPath();
+            fileName = path.substring(path.lastIndexOf("/") + 1, path.length());
         }
-        String fileName = url.getFile();
-        Path targetPath = new File(targetDirectory + fileName).toPath();
-        try {
-            Files.copy(url.openStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+
+        File targetDirectoryAsFile = new File(targetDirectory);
+        if (!targetDirectoryAsFile.exists()) {
+            targetDirectoryAsFile.mkdirs();
         }
-        return targetPath;
+        File targetFile = new File(targetDirectoryAsFile, fileName);
+
+        AmazonS3Client client = createS3Client(spec);
+        if (spec.region != null) {
+            client.setRegion(RegionUtils.getRegion(spec.region));
+        }
+        client.getObject(new GetObjectRequest(spec.s3Bucket, spec.s3Object), targetFile);
+
+        log.info("File downloaded to {}", targetFile);
+
+        return targetFile.toPath();
+   }
+
+    private static AmazonS3Client createS3Client(S3Spec spec) {
+
+        // Enable client-side encryption if CMK ID (Customer Master Key) is specified.
+        if (spec.cmkId != null) {
+            Region region = RegionUtils.getRegion(spec.region);
+            CryptoConfiguration cryptoConfig = new CryptoConfiguration().withAwsKmsRegion(region);
+            return new AmazonS3EncryptionClient(new DefaultAWSCredentialsProviderChain(),
+                                                new KMSEncryptionMaterialsProvider(spec.cmkId),
+                                                cryptoConfig).withRegion(region);
+        }
+
+        return new AmazonS3Client();
     }
-    */
+
+    static class S3Spec {
+        String s3Bucket;
+        String s3Object;
+        String region;
+        String cmkId;
+
+        private S3Spec(String s3Bucket, String s3Object, String region, String cmkId) {
+            this.s3Bucket = s3Bucket;
+            this.s3Object = s3Object;
+            this.region = region;
+            this.cmkId = cmkId;
+        }
+
+        /**
+         * URI is of the following form: s3://[s3Bucket]/[s3Object]?[query]
+         * <p>
+         * Supported query parameters are "region" (AWS region) and "cmkid" (ID or alias of Customer Master Key in KMS).
+         * <p>
+         * For instance: s3://mybucket/foo/bar/file.txt?region=eu-west-1&cmkid=123abc
+         */
+        static S3Spec parse(URI uri) {
+            String s3Bucket = uri.getAuthority();
+            String s3Object = uri.getPath().substring(1);
+            Map<String, String> params = parseQuery(uri.getQuery());
+
+            return new S3Spec(s3Bucket, s3Object, params.get("region"), params.get("cmkid"));
+        }
+
+        private static Map<String, String> parseQuery(String query) {
+            Map<String, String> result = new LinkedHashMap<>();
+            if (query == null) {
+                return result;
+            }
+            for (String part : query.split("&")) {
+                int i = part.indexOf("=");
+                if (i != -1) {
+                    result.put(part.substring(0, i), part.substring(i + 1));
+                }
+            }
+            return result;
+        }
+    }
 }
