@@ -1,20 +1,21 @@
 package no.cantara.cs.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import no.cantara.cs.dto.Application;
 import no.cantara.cs.dto.ApplicationConfig;
 import no.cantara.cs.dto.ApplicationStatus;
 import no.cantara.cs.dto.Client;
 import no.cantara.cs.dto.ClientEnvironment;
 import no.cantara.cs.dto.ClientStatus;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.DefaultUriTemplateHandler;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -27,85 +28,86 @@ public class ConfigServiceAdminClient {
 
     private static final String CLIENT_PATH = "/client";
     private static final String APPLICATION_PATH = "/application";
-    private static final String CONFIG_PATH = APPLICATION_PATH + "/{applicationId}/config";
 
-    private final HttpHeaders basicAuthHeaders;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final WebTarget applicationResource;
+    private final WebTarget clientResource;
+    private final ObjectMapper mapper;
 
     public ConfigServiceAdminClient(String baseUrl, String username, String password) {
+        mapper = new ObjectMapper();
 
-        String plainCreds = username + ":" + password;
-        byte[] plainCredsBytes = plainCreds.getBytes();
-        
-        byte[] base64CredsBytes = Base64.getEncoder().encode(plainCredsBytes);
-        String base64Creds = new String(base64CredsBytes);
+        javax.ws.rs.client.Client restClient = ClientBuilder.newClient()
+                .register(HttpAuthenticationFeature.basic(username, password));
 
-        basicAuthHeaders = new HttpHeaders();
-        basicAuthHeaders.add("Authorization", "Basic " + base64Creds);
-
-        DefaultUriTemplateHandler defaultUriTemplateHandler = new DefaultUriTemplateHandler();
-        defaultUriTemplateHandler.setBaseUrl(baseUrl);
-        restTemplate.setUriTemplateHandler(defaultUriTemplateHandler);
+        applicationResource = restClient.target(baseUrl).path(APPLICATION_PATH);
+        clientResource = restClient.target(baseUrl).path(CLIENT_PATH);
     }
 
     public Application registerApplication(String artifactId) throws IOException {
         Application application = new Application(artifactId);
-
-        return restTemplate.exchange(APPLICATION_PATH,
-                HttpMethod.POST, new HttpEntity<>(application, basicAuthHeaders), Application.class).getBody();
+        Response response = applicationResource.request().post(jsonEntity(application));
+        return readValue(response, Application.class);
     }
 
     public ApplicationConfig createApplicationConfig(Application application, ApplicationConfig config) throws IOException {
-        return restTemplate.exchange(CONFIG_PATH, HttpMethod.POST, new HttpEntity<>(config, basicAuthHeaders),
-                ApplicationConfig.class, application.id).getBody();
+        Response response = applicationResource.path(application.id + "/config/").request().post(jsonEntity(config));
+        return readValue(response, ApplicationConfig.class);
     }
 
     public ApplicationConfig updateConfig(String applicationId, ApplicationConfig config) throws IOException {
-        return restTemplate.exchange(CONFIG_PATH + "/{configId}", HttpMethod.PUT,
-                new HttpEntity<>(config, basicAuthHeaders), ApplicationConfig.class, applicationId, config.getId()).getBody();
+        Response response = applicationResource.path(applicationId + "/config/" + config.getId()).request().put(jsonEntity(config));
+        return readValue(response, ApplicationConfig.class);
     }
 
     public Client getClient(String clientId) throws IOException {
-        return restTemplate.exchange( CLIENT_PATH + "/{clientId}", HttpMethod.GET, new HttpEntity<>(null, basicAuthHeaders),
-                Client.class, clientId).getBody();
+        Response response = clientResource.path(clientId).request().get();
+        return readValue(response, Client.class);
     }
 
     public List<Client> getAllClients() throws IOException {
-        return restTemplate.exchange(CLIENT_PATH, HttpMethod.GET, new HttpEntity<>(null, basicAuthHeaders),
-                new ParameterizedTypeReference<List<Client>>() {}).getBody();
+        return readValue(clientResource.request().get(), new TypeReference<List<Client>>(){});
     }
 
     public Client putClient(Client client) throws IOException {
-        return restTemplate.exchange(CLIENT_PATH + "/{clientId}", HttpMethod.PUT, new HttpEntity<>(client, basicAuthHeaders),
-                Client.class, client.clientId).getBody();
+        Response response = clientResource.path(client.clientId).request().put(jsonEntity(client));
+        return readValue(response, Client.class);
     }
 
     public ClientStatus getClientStatus(String clientId) throws IOException {
-        return restTemplate.exchange(CLIENT_PATH + "/{clientId}/status",
-                HttpMethod.GET, new HttpEntity<>(null, basicAuthHeaders), ClientStatus.class, clientId).getBody();
+        Response response = clientResource.path(clientId + "/status").request().get();
+        return readValue(response, ClientStatus.class);
     }
 
     public ClientEnvironment getClientEnvironment(String clientId) throws IOException {
-        return restTemplate.exchange(CLIENT_PATH + "/{clientId}/env",
-                HttpMethod.GET, new HttpEntity<>(null, basicAuthHeaders), ClientEnvironment.class, clientId).getBody();
+        Response response = clientResource.path(clientId + "/env").request().get();
+        return readValue(response, ClientEnvironment.class);
     }
 
     public ApplicationStatus getApplicationStatus(String artifactId) throws IOException {
-        return restTemplate.exchange(APPLICATION_PATH + "/{artifactId}/status",
-                HttpMethod.GET, new HttpEntity<>(null, basicAuthHeaders), ApplicationStatus.class, artifactId).getBody();
+        Response response = applicationResource.path(artifactId + "/status").request().get();
+        return readValue(response, ApplicationStatus.class);
     }
 
     public List<Application> getAllApplications() throws IOException {
-        return restTemplate.exchange(APPLICATION_PATH,
-                HttpMethod.GET, new HttpEntity<>(null, basicAuthHeaders),
-                new ParameterizedTypeReference<List<Application>>() {}).getBody();
+        Response response = applicationResource.request().get();
+        return readValue(response, new TypeReference<List<Application>>() {});
     }
 
     public Map<String, ApplicationConfig> getAllConfigs() throws IOException {
-        return restTemplate.exchange(CONFIG_PATH,
-                HttpMethod.GET, new HttpEntity<>(null, basicAuthHeaders),
-                new ParameterizedTypeReference<Map<String, ApplicationConfig>>() {},
-                "applicationId-is-not-used-by-the-server").getBody();
+        Response response = applicationResource.path("applicationId-is-not-used-by-the-server/config").request().get();
+        return readValue(response, new TypeReference<Map<String, ApplicationConfig>>(){});
+    }
+
+    private Entity<String> jsonEntity(Object object) throws JsonProcessingException {
+        return Entity.json(mapper.writeValueAsString(object));
+    }
+
+    private <T> T readValue(Response response, Class<T> clazz) throws IOException {
+        return mapper.readValue(response.readEntity(String.class), clazz);
+    }
+
+    private <T> T readValue(Response response, TypeReference<T> type) throws IOException {
+        return mapper.readValue(response.readEntity(String.class), type);
     }
 
 }
