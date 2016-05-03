@@ -2,12 +2,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.cantara.jau</groupId>
     <artifactId>configservice-sdk</artifactId>
-    <packaging>jar</packaging>
     <version>0.11-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <name>ConfigService SDK</name>
-   
+
     <developers>
-       <developer>
+        <developer>
             <name>Erik Drolshammer</name>
             <email>erik-dev@fjas.no</email>
             <roles>
@@ -22,11 +22,10 @@
         <version>5</version>
     </parent>
 
-   <scm>
+    <scm>
         <developerConnection>scm:git:ssh://git@github.com/cantara/ConfigService-SDK.git</developerConnection>
         <connection>scm:git:https://github.com/cantara/ConfigService-SDK.git</connection>
-     <tag>HEAD</tag>
-  </scm>
+    </scm>
 
     <properties>
         <slf4j.version>1.7.12</slf4j.version>
@@ -77,6 +76,10 @@
                 <exclusion>
                     <groupId>commons-codec</groupId>
                     <artifactId>commons-codec</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
