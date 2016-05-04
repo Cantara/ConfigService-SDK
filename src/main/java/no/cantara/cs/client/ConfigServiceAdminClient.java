@@ -93,8 +93,13 @@ public class ConfigServiceAdminClient {
         return readValue(response, new TypeReference<List<Application>>() {});
     }
 
+    public ApplicationConfig getApplicationConfig(String applicationId) throws IOException {
+        Response response = applicationResource.path(applicationId + "/config").request().get();
+        return readValue(response, ApplicationConfig.class);
+    }
+
     public Map<String, ApplicationConfig> getAllConfigs() throws IOException {
-        Response response = applicationResource.path("applicationId-is-not-used-by-the-server/config").request().get();
+        Response response = applicationResource.path("/config").request().get();
         return readValue(response, new TypeReference<Map<String, ApplicationConfig>>(){});
     }
 
