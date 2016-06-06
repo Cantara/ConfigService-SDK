@@ -50,7 +50,7 @@ public class ConfigServiceClient {
         return this;
     }
 
-    public ClientConfig registerClient(ClientRegistrationRequest request) throws IOException {
+    public ClientConfig registerClient(ClientRegistrationRequest request) throws IOException, HttpException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url + "/registration").openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
@@ -70,7 +70,8 @@ public class ConfigServiceClient {
         String responseMessage = connection.getResponseMessage();
 
         if (responseCode != HttpURLConnection.HTTP_OK) {
-            ClientResponseErrorHandler.handle(responseCode, responseMessage, url, "registerClient");
+            log.warn("RegisterClient failed. url={}, responseCode={}, responseMessage={}", url, responseCode, responseMessage);
+            throw new HttpException(responseCode, responseMessage);
         }
 
         try (Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"))) {
@@ -166,7 +167,7 @@ public class ConfigServiceClient {
     }
 
 
-    public ClientConfig checkForUpdate(String clientId, CheckForUpdateRequest checkForUpdateRequest) throws IOException {
+    public ClientConfig checkForUpdate(String clientId, CheckForUpdateRequest checkForUpdateRequest) throws IOException, HttpException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url + "/" + clientId + "/sync").openConnection();
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
@@ -190,7 +191,9 @@ public class ConfigServiceClient {
         }
 
         if (responseCode != HttpURLConnection.HTTP_OK) {
-            ClientResponseErrorHandler.handle(responseCode, responseMessage, url, "checkForUpdate");
+            log.warn("CheckForUpdate failed. url={}, responseCode={}, responseMessage={}",
+                    url, responseCode, responseMessage);
+            throw new HttpException(responseCode, responseMessage);
         }
 
         try (Reader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"))) {
