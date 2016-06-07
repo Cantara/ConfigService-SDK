@@ -9,13 +9,17 @@ import no.cantara.cs.dto.ApplicationStatus;
 import no.cantara.cs.dto.Client;
 import no.cantara.cs.dto.ClientEnvironment;
 import no.cantara.cs.dto.ClientStatus;
-import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.ClientRequestContext;
+import javax.ws.rs.client.ClientRequestFilter;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
+import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 
@@ -37,7 +41,7 @@ public class ConfigServiceAdminClient {
         mapper = new ObjectMapper();
 
         javax.ws.rs.client.Client restClient = ClientBuilder.newClient()
-                .register(HttpAuthenticationFeature.basic(username, password));
+                .register(new Authenticator(username, password));
 
         applicationResource = restClient.target(baseUrl).path(APPLICATION_PATH);
         clientResource = restClient.target(baseUrl).path(CLIENT_PATH);
@@ -115,4 +119,29 @@ public class ConfigServiceAdminClient {
         return mapper.readValue(response.readEntity(String.class), type);
     }
 
+    private class Authenticator implements ClientRequestFilter {
+
+        private final String user;
+        private final String password;
+
+        Authenticator(String user, String password) {
+            this.user = user;
+            this.password = password;
+        }
+
+        public void filter(ClientRequestContext requestContext) throws IOException {
+            MultivaluedMap<String, Object> headers = requestContext.getHeaders();
+            final String basicAuthentication = getBasicAuthentication();
+            headers.add("Authorization", basicAuthentication);
+        }
+
+        private String getBasicAuthentication() {
+            String token = this.user + ":" + this.password;
+            try {
+                return "BASIC " + DatatypeConverter.printBase64Binary(token.getBytes("UTF-8"));
+            } catch (UnsupportedEncodingException ex) {
+                throw new IllegalStateException("Cannot encode with UTF-8", ex);
+            }
+        }
+    }
 }
