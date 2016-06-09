@@ -48,7 +48,7 @@ public class ApplicationConfig implements Serializable {
         this.eventExtractionConfigs = new ArrayList<>();
     }
 
-    private void setUpdated() {
+    public void setUpdated() {
         this.lastChanged = df.format(Instant.now());
     }
 

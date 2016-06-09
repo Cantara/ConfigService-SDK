@@ -63,6 +63,10 @@ public class ConfigServiceAdminClient {
         return readValue(response, ApplicationConfig.class);
     }
 
+    public void deleteConfig(String applicationId, ApplicationConfig config) throws IOException {
+        applicationResource.path(applicationId + "/config/" + config.getId()).request().delete();
+    }
+
     public Client getClient(String clientId) throws IOException {
         Response response = clientResource.path(clientId).request().get();
         return readValue(response, Client.class);

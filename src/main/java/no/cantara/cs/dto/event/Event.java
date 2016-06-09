@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 @JsonFilter("line")
 public class Event {
     public final int number;
-    public final String line;
+    private String line;
     private String tag;
     private String groupName;
     private String fileName;
@@ -32,6 +32,9 @@ public class Event {
         return fileName;
     }
 
+    public void setLine(String line) {
+        this.line = line;
+    }
     public void setTag(String type) {
         this.tag = type;
     }
