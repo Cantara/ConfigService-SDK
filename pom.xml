@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>no.cantara.jau</groupId>
     <artifactId>configservice-sdk</artifactId>
-    <version>0.12-SNAPSHOT</version>
+    <version>0.11.1</version>
     <packaging>jar</packaging>
     <name>ConfigService SDK</name>
 
@@ -25,7 +25,8 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/cantara/ConfigService-SDK.git</developerConnection>
         <connection>scm:git:https://github.com/cantara/ConfigService-SDK.git</connection>
-    </scm>
+      <tag>configservice-sdk-0.11.1</tag>
+  </scm>
 
     <properties>
         <slf4j.version>1.7.12</slf4j.version>
