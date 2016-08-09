@@ -1,12 +1,14 @@
 package no.cantara.cs.client;
 
 import java.io.IOException;
+import java.util.Optional;
 import java.util.Properties;
 
 public class ConfigServiceProperties {
     static final String CONFIG_SERVICE_URL_KEY = "configservice.url";
     static final String CONFIG_SERVICE_USERNAME_KEY = "configservice.username";
     static final String CONFIG_SERVICE_PASSWORD_KEY = "configservice.password";
+    static final String CONFIG_SERVICE_TIMEOUT_KEY = "configservice.timeout";
     static final String CONFIG_SERVICE_ARTIFACT_ID = "configservice.artifactid";
     static final String CONFIG_SERVICE_CLIENT_ID = "configservice.clientid";
     static final String CONFIG_SERVICE_CONFIGURATION_STORE_DIRECTORY = "configservice.configuration.store.directory";
@@ -20,7 +22,9 @@ public class ConfigServiceProperties {
     }
 
     public ConfigServiceClient buildClient() {
-        return new ConfigServiceClient(getServiceConfigUrl(), getUsername(), getPassword());
+        ConfigServiceClient client = new ConfigServiceClient(getServiceConfigUrl(), getUsername(), getPassword());
+        getTimeout().ifPresent(client::withTimeout);
+        return client;
     }
 
     public ApplicationConfigurator buildApplicationConfigurator() {
@@ -35,12 +39,22 @@ public class ConfigServiceProperties {
     public String getServiceConfigUrl() {
         return getStringFromEnvOrPropertiesFile(CONFIG_SERVICE_URL_KEY);
     }
+
     public String getUsername() {
         return getStringFromEnvOrPropertiesFile(CONFIG_SERVICE_USERNAME_KEY);
     }
     public String getPassword() {
         return getStringFromEnvOrPropertiesFile(CONFIG_SERVICE_PASSWORD_KEY);
     }
+
+    /**
+     * @return The timeout in millis for HTTP connections to ConfigService. If not specified in the properties file,
+     *         the default value {@link ConfigServiceClient#DEFAULT_TIMEOUT_MILLIS} is used.
+     */
+    private Optional<Integer> getTimeout() {
+        return getIntegerFromEnvOrPropertiesFile(CONFIG_SERVICE_TIMEOUT_KEY);
+    }
+
     public String getArtifactId() {
         return getStringFromEnvOrPropertiesFile(CONFIG_SERVICE_ARTIFACT_ID);
     }
@@ -64,6 +78,10 @@ public class ConfigServiceProperties {
             return envVariable;
         }
         return propertiesFromFile.getProperty(key);
+    }
+
+    private Optional<Integer> getIntegerFromEnvOrPropertiesFile(String key) {
+        return Optional.ofNullable(getStringFromEnvOrPropertiesFile(key)).map(Integer::valueOf);
     }
 
     private Properties loadPropertiesFromFile(String filename) {

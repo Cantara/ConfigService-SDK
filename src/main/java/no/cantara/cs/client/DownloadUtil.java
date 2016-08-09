@@ -109,6 +109,8 @@ public class DownloadUtil {
         HttpURLConnection httpConn;
         try {
             httpConn = (HttpURLConnection) uri.toURL().openConnection();
+            httpConn.setConnectTimeout(ConfigServiceClient.DEFAULT_TIMEOUT_MILLIS);
+            httpConn.setReadTimeout(ConfigServiceClient.DEFAULT_TIMEOUT_MILLIS);
             if (username != null && password != null) {
                 String authorizationValue = "Basic " + Base64.getEncoder().encodeToString((username + ":" + password).getBytes());
                 httpConn.setRequestProperty("Authorization", authorizationValue);

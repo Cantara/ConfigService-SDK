@@ -28,6 +28,8 @@ public class ConfigServiceClient {
     public static final String LAST_CHANGED = "lastChanged";
     public static final String COMMAND = "command";
     public static final String EVENT_EXTRACTION_CONFIGS = "eventExtractionConfigs";
+
+    public static final int DEFAULT_TIMEOUT_MILLIS = 30_000;
     private static final String DEFAULT_APPLICATION_STATE_FILENAME = "applicationState.properties";
     private static final Logger log = LoggerFactory.getLogger(ConfigServiceClient.class);
     private static final ObjectMapper mapper = new ObjectMapper();
@@ -36,6 +38,7 @@ public class ConfigServiceClient {
     private final String username;
     private final String password;
     private String applicationStateFilename;
+    private int timeoutMillis;
 
 
     public ConfigServiceClient(String url, String username, String password) {
@@ -43,6 +46,7 @@ public class ConfigServiceClient {
         this.username = username;
         this.password = password;
         this.applicationStateFilename = DEFAULT_APPLICATION_STATE_FILENAME;
+        this.timeoutMillis = DEFAULT_TIMEOUT_MILLIS;
     }
 
     public ConfigServiceClient withApplicationStateFilename(String applicationStateFilename) {
@@ -50,8 +54,15 @@ public class ConfigServiceClient {
         return this;
     }
 
+    public ConfigServiceClient withTimeout(int timeoutMillis) {
+        this.timeoutMillis = timeoutMillis;
+        return this;
+    }
+
     public ClientConfig registerClient(ClientRegistrationRequest request) throws IOException, HttpException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url + "/registration").openConnection();
+        connection.setConnectTimeout(timeoutMillis);
+        connection.setReadTimeout(timeoutMillis);
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
         if (username != null && password != null) {
@@ -169,6 +180,8 @@ public class ConfigServiceClient {
 
     public ClientConfig checkForUpdate(String clientId, CheckForUpdateRequest checkForUpdateRequest) throws IOException, HttpException {
         HttpURLConnection connection = (HttpURLConnection) new URL(url + "/" + clientId + "/sync").openConnection();
+        connection.setConnectTimeout(timeoutMillis);
+        connection.setReadTimeout(timeoutMillis);
         connection.setRequestMethod("POST");
         connection.setDoOutput(true);
         if (username != null && password != null) {
