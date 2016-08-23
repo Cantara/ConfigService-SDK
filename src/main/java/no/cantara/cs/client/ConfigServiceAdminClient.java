@@ -9,6 +9,7 @@ import no.cantara.cs.dto.ApplicationStatus;
 import no.cantara.cs.dto.Client;
 import no.cantara.cs.dto.ClientEnvironment;
 import no.cantara.cs.dto.ClientStatus;
+import no.cantara.cs.util.Environment;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.ClientRequestContext;
@@ -45,6 +46,10 @@ public class ConfigServiceAdminClient {
 
         applicationResource = restClient.target(baseUrl).path(APPLICATION_PATH);
         clientResource = restClient.target(baseUrl).path(CLIENT_PATH);
+    }
+
+    public ConfigServiceAdminClient(Environment environment) {
+        this(environment.getUrl(), environment.getUsername(), environment.getPassword());
     }
 
     public Application registerApplication(String artifactId) throws IOException {

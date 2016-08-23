@@ -1,16 +1,20 @@
 package no.cantara.cs.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import no.cantara.cs.client.ConfigServiceAdminClient;
-import no.cantara.cs.dto.Application;
-import no.cantara.cs.dto.ApplicationConfig;
-import no.cantara.cs.dto.Client;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import no.cantara.cs.client.ConfigServiceAdminClient;
+import no.cantara.cs.dto.Application;
+import no.cantara.cs.dto.ApplicationConfig;
+import no.cantara.cs.dto.Client;
 
 /**
  * Export all applications, applicationconfigs and clients from a given ConfigServer instance. Persist as json files.
@@ -19,13 +23,19 @@ import java.util.Map;
  */
 public class ExportConfigServerData {
 
-    private ConfigServiceAdminClient adminClient;
+    private static final Logger log = LoggerFactory.getLogger(ExportConfigServerData.class);
+
+    private final ConfigServiceAdminClient adminClient;
 
     public ExportConfigServerData(ConfigServiceAdminClient adminClient) {
         this.adminClient = adminClient;
     }
 
-    public void export(Path targetDirectory) throws IOException {
+    public ExportConfigServerData(Environment environment) {
+        this(new ConfigServiceAdminClient(environment));
+    }
+
+    public void export(Path targetDirectory) throws Exception {
 
         List<Application> applications = adminClient.getAllApplications();
         Map<String, ApplicationConfig> configs = adminClient.getAllConfigs();
@@ -38,18 +48,18 @@ public class ExportConfigServerData {
             String configIdentifier = config.getName() + "-" + config.getId();
             writeToFile(targetDirectory.resolve("config/" + configIdentifier).resolve(configIdentifier + ".json"), config);
             clients.stream()
-                    .filter(client -> config.getId().equals(client.applicationConfigId))
-                    .forEach(client -> writeToFile(targetDirectory.resolve("config/" + configIdentifier + "/client/" + client.clientId + ".json"), client));
+                   .filter(client -> config.getId().equals(client.applicationConfigId))
+                   .forEach(client -> writeToFile(targetDirectory.resolve("config/" + configIdentifier + "/client/" + client.clientId + ".json"), client));
         });
     }
 
-    public static void writeToFile(Path path, Object object) {
+    private void writeToFile(Path path, Object object) {
         try {
             Path parent = path.getParent();
             if (!Files.exists(parent)) {
                 Files.createDirectories(parent);
             }
-            System.out.println("Writing file " + path.toString());
+            log.info("Writing file {}", path);
             Files.write(path, new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsBytes(object));
         } catch (IOException e) {
             throw new RuntimeException(e);
