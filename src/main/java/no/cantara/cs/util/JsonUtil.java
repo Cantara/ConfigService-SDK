@@ -19,6 +19,10 @@ public class JsonUtil {
         return new ObjectMapper().readValue(Files.readAllBytes(path), ApplicationConfig.class);
     }
 
+    public static ApplicationConfig readConfigFromString(String json) throws IOException {
+        return new ObjectMapper().readValue(json, ApplicationConfig.class);
+    }
+
     public static Application readApplicationFromFile(Path path) throws IOException {
         return new ObjectMapper().readValue(Files.readAllBytes(path), Application.class);
     }
