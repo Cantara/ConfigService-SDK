@@ -1,6 +1,7 @@
 package no.cantara.cs.client;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Properties;
 
 import org.slf4j.Logger;
@@ -65,7 +66,6 @@ public class ApplicationConfigurator {
                 } else {
                     log.info("No new clientconfig, using existing");
                 }
-
             } catch (Exception e) {
                 log.error("checkForUpdate failed - falling back to existing clientconfig", e);
             }
@@ -75,9 +75,15 @@ public class ApplicationConfigurator {
                 ClientRegistrationRequest request = new ClientRegistrationRequest(artifactId);
                 request.clientId = clientId;
                 clientConfig = configServiceClient.registerClient(request);
+            } catch (ConnectException ce) {
+                if (allowFallbackToLocalConfiguration) {
+                    log.error("RegisterClient failed with '{}' for artifactId={} and clientId={} - falling back to local configuration files.", ce.getMessage(), artifactId, clientId);
+                } else {
+                    throw ce;
+                }
             } catch (Exception e) {
                 if (allowFallbackToLocalConfiguration) {
-                    log.error("registerClient failed - falling back to local configuration files", e);
+                    log.error("RegisterClient failed for artifactId={} and clientId={} - falling back to local configuration files", artifactId, clientId, e);
                 } else {
                     throw e;
                 }
@@ -91,5 +97,4 @@ public class ApplicationConfigurator {
             DownloadUtil.downloadAllFiles(clientConfig.config.getDownloadItems(), downloadItemDirectory);
         }
     }
-
 }
