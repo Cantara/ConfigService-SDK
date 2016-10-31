@@ -58,6 +58,10 @@ public class ConfigServiceAdminClient {
         return readValue(response, Application.class);
     }
 
+    public void deleteApplication(String applicationId) throws IOException {
+        applicationResource.path(applicationId).request().delete();
+    }
+
     public ApplicationConfig createApplicationConfig(Application application, ApplicationConfig config) throws IOException {
         Response response = applicationResource.path(application.id + "/config/").request().post(jsonEntity(config));
         return readValue(response, ApplicationConfig.class);
