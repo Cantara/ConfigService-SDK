@@ -10,7 +10,7 @@ import no.cantara.cs.dto.Application;
 import no.cantara.cs.dto.ApplicationConfig;
 
 /**
- * Register new Application and ApplicationConfig for that application.
+ * Registers a new Application and optionally an ApplicationConfig for that application.
  *
  * @author <a href="mailto:asbjornwillersrud@gmail.com">Asbjørn Willersrud</a> 01/04/2016.
  */
@@ -28,6 +28,11 @@ public class RegisterApplication {
         this(new ConfigServiceAdminClient(environment));
     }
 
+    public void registerApplication(String artifactId) throws Exception {
+        Application application = adminClient.registerApplication(artifactId);
+        log.info("Registered application {}", JsonUtil.toJson(application));
+    }
+
     public void registerApplication(String artifactId, Path configFile) throws Exception {
         Application application = adminClient.registerApplication(artifactId);
         log.info("Registered application {}", JsonUtil.toJson(application));
@@ -36,5 +41,4 @@ public class RegisterApplication {
         ApplicationConfig applicationConfigResult = adminClient.createApplicationConfig(application, applicationConfigInput);
         log.info("Registered applicationconfig {}", JsonUtil.toJson(applicationConfigResult));
     }
-
 }
