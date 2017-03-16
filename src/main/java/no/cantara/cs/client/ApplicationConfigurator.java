@@ -58,9 +58,11 @@ public class ApplicationConfigurator {
         if (applicationState != null) {
             try {
                 String clientId = applicationState.getProperty(ConfigServiceClient.CLIENT_ID);
+                String lastChanged = applicationState.getProperty(ConfigServiceClient.LAST_CHANGED);
+                String clientSecret = applicationState.getProperty(ConfigServiceClient.CLIENT_SECRET);
+
                 log.info("Found persisted application state with clientId: {}. Checking for updated clientconfig", clientId);
-                clientConfig = configServiceClient.checkForUpdate(clientId,
-                        new CheckForUpdateRequest(applicationState.getProperty(ConfigServiceClient.LAST_CHANGED)));
+                clientConfig = configServiceClient.checkForUpdate(new CheckForUpdateRequest(clientId, lastChanged, clientSecret));
                 if (clientConfig != null) {
                     log.info("Found updated clientconfig, id={}, lastChanged={}", clientConfig.config.getId(), clientConfig.config.getLastChanged());
                 } else {

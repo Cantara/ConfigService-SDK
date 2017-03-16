@@ -5,14 +5,18 @@ package no.cantara.cs.dto;
  */
 public class ClientConfig {
     public String clientId;
+    public String clientSecret;
     public ApplicationConfig config;
 
-    //for jackson
-    private ClientConfig() {
-    }
+    private ClientConfig() {}   //for jackson
 
     public ClientConfig(String clientId, ApplicationConfig config) {
         this.clientId = clientId;
+        this.config = config;
+    }
+    public ClientConfig(String clientId, String clientSecret, ApplicationConfig config) {
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
         this.config = config;
     }
 
@@ -20,6 +24,7 @@ public class ClientConfig {
     public String toString() {
         return "ClientConfig{" +
                 "clientId='" + clientId + '\'' +
+                ", clientSecret='" + clientSecret + '\'' +
                 ", " + config +
                 '}';
     }

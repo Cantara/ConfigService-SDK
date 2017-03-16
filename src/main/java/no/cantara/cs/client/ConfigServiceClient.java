@@ -25,6 +25,7 @@ import java.util.Properties;
 public class ConfigServiceClient {
     public static final Charset CHARSET = Charset.forName("UTF-8");
     public static final String CLIENT_ID = "clientId";
+    public static final String CLIENT_SECRET = "clientSecret";
     public static final String LAST_CHANGED = "lastChanged";
     public static final String COMMAND = "command";
     public static final String EVENT_EXTRACTION_CONFIGS = "eventExtractionConfigs";
@@ -102,15 +103,17 @@ public class ConfigServiceClient {
     public void saveApplicationState(ClientConfig clientConfig) {
         final Properties applicationState = new Properties();
         applicationState.put(CLIENT_ID, clientConfig.clientId);
+        if (clientConfig.clientSecret != null) {
+            applicationState.put(CLIENT_SECRET, clientConfig.clientSecret);
+        }
         applicationState.put(LAST_CHANGED, clientConfig.config.getLastChanged());
         if (clientConfig.config.getStartServiceScript() != null) {
             applicationState.put(COMMAND, clientConfig.config.getStartServiceScript());
         }
 
-        ObjectMapper mapper = new ObjectMapper();
         try {
-            String jsonEventExtractionTags = mapper.writeValueAsString(clientConfig.config
-                    .getEventExtractionConfigs());
+            String jsonEventExtractionTags = mapper.writeValueAsString(
+                    clientConfig.config.getEventExtractionConfigs());
             applicationState.put(EVENT_EXTRACTION_CONFIGS, jsonEventExtractionTags);
         } catch (JsonProcessingException io) {
             throw new RuntimeException(io);
@@ -162,7 +165,6 @@ public class ConfigServiceClient {
             return new ArrayList<>();
         }
 
-        ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.readValue(eventExtractionConfigs, new TypeReference<List<EventExtractionConfig>>(){});
         } catch (IOException io) {
@@ -178,8 +180,8 @@ public class ConfigServiceClient {
     }
 
 
-    public ClientConfig checkForUpdate(String clientId, CheckForUpdateRequest checkForUpdateRequest) throws IOException, HttpException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url + "/" + clientId + "/sync").openConnection();
+    public ClientConfig checkForUpdate(CheckForUpdateRequest checkForUpdateRequest) throws IOException, HttpException {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url + "/" + checkForUpdateRequest.clientId + "/sync").openConnection();
         connection.setConnectTimeout(timeoutMillis);
         connection.setReadTimeout(timeoutMillis);
         connection.setRequestMethod("POST");
@@ -218,6 +220,12 @@ public class ConfigServiceClient {
             String jsonResponse = result.toString();
             return mapper.readValue(jsonResponse, ClientConfig.class);
         }
+    }
+
+    @Deprecated //use checkForUpdate(CheckForUpdateRequest checkForUpdateRequest)
+    public ClientConfig checkForUpdate(String clientId, CheckForUpdateRequest checkForUpdateRequest) throws IOException, HttpException {
+        checkForUpdateRequest.clientId = clientId;
+        return checkForUpdate(checkForUpdateRequest);
     }
 
     public String getUrl() {
