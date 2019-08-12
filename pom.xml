@@ -25,8 +25,7 @@
     <scm>
         <developerConnection>scm:git:ssh://git@github.com/cantara/ConfigService-SDK.git</developerConnection>
         <connection>scm:git:https://github.com/cantara/ConfigService-SDK.git</connection>
-      <tag>HEAD</tag>
-  </scm>
+    </scm>
 
     <properties>
         <slf4j.version>1.7.12</slf4j.version>
@@ -61,11 +60,11 @@
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-cbor -->
         <dependency>
-             <groupId>com.fasterxml.jackson.dataformat</groupId>
-             <artifactId>jackson-dataformat-cbor</artifactId>
-             <version>2.9.9</version>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-cbor</artifactId>
+            <version>2.9.9</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
@@ -81,12 +80,6 @@
             <groupId>org.glassfish.jersey.core</groupId>
             <artifactId>jersey-client</artifactId>
             <version>2.22.1</version>
-        </dependency>
-        
-       <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.9.9.3</version>
         </dependency>
 
 
@@ -109,8 +102,8 @@
                     <artifactId>jackson-databind</artifactId>
                 </exclusion>
                 <exclusion>
-                     <groupId>com.fasterxml.jackson.dataformat</groupId>
-                     <artifactId>jackson-dataformat-cbor</artifactId>
+                    <groupId>com.fasterxml.jackson.dataformat</groupId>
+                    <artifactId>jackson-dataformat-cbor</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
