@@ -2,6 +2,7 @@ package no.cantara.cs.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.cantara.cs.dto.CheckForUpdateRequest;
 import no.cantara.cs.dto.ClientConfig;
@@ -32,7 +33,7 @@ public class ConfigServiceClient {
     public static final int DEFAULT_TIMEOUT_MILLIS = 30_000;
     private static final String DEFAULT_APPLICATION_STATE_FILENAME = "applicationState.properties";
     private static final Logger log = LoggerFactory.getLogger(ConfigServiceClient.class);
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private final String url;
     private final String username;
@@ -162,7 +163,7 @@ public class ConfigServiceClient {
             return new ArrayList<>();
         }
 
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         try {
             return mapper.readValue(eventExtractionConfigs, new TypeReference<List<EventExtractionConfig>>(){});
         } catch (IOException io) {

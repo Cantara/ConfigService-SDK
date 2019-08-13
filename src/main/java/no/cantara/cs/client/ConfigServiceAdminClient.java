@@ -2,20 +2,13 @@ package no.cantara.cs.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import no.cantara.cs.dto.Application;
-import no.cantara.cs.dto.ApplicationConfig;
-import no.cantara.cs.dto.ApplicationStatus;
 import no.cantara.cs.dto.Client;
-import no.cantara.cs.dto.ClientEnvironment;
-import no.cantara.cs.dto.ClientStatus;
+import no.cantara.cs.dto.*;
 import no.cantara.cs.util.Environment;
 
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.client.*;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
@@ -39,7 +32,7 @@ public class ConfigServiceAdminClient {
     private final ObjectMapper mapper;
 
     public ConfigServiceAdminClient(String baseUrl, String username, String password) {
-        mapper = new ObjectMapper();
+        mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         javax.ws.rs.client.Client restClient = ClientBuilder.newClient()
                 .register(new Authenticator(username, password));

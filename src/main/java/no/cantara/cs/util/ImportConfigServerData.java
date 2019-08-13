@@ -1,5 +1,15 @@
 package no.cantara.cs.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import no.cantara.cs.client.ConfigServiceAdminClient;
+import no.cantara.cs.dto.Application;
+import no.cantara.cs.dto.ApplicationConfig;
+import no.cantara.cs.dto.Client;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,17 +17,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import no.cantara.cs.client.ConfigServiceAdminClient;
-import no.cantara.cs.dto.Application;
-import no.cantara.cs.dto.ApplicationConfig;
-import no.cantara.cs.dto.Client;
 
 /**
  * @author Asbjørn Willersrud
@@ -112,7 +111,7 @@ public class ImportConfigServerData {
 
     private static <T> T readFromPath(Path path, Class<T> clazz) {
         try {
-            return new ObjectMapper().readValue(Files.readAllBytes(path), clazz);
+            return new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).readValue(Files.readAllBytes(path), clazz);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
