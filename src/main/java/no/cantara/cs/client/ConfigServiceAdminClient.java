@@ -9,6 +9,7 @@ import no.cantara.cs.dto.*;
 import no.cantara.cs.util.Environment;
 
 import javax.ws.rs.client.*;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.DatatypeConverter;
@@ -47,7 +48,9 @@ public class ConfigServiceAdminClient {
 
     public Application registerApplication(String artifactId) throws IOException {
         Application application = new Application(artifactId);
-        Response response = applicationResource.request().post(jsonEntity(application));
+        Response response = applicationResource.request()
+                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .post(jsonEntity(application));
         return readValue(response, Application.class);
     }
 
@@ -84,33 +87,42 @@ public class ConfigServiceAdminClient {
     }
 
     public ClientStatus getClientStatus(String clientId) throws IOException {
-        Response response = clientResource.path(clientId + "/status").request().get();
+        Response response = clientResource.path(clientId + "/status").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
         return readValue(response, ClientStatus.class);
     }
 
     public ClientEnvironment getClientEnvironment(String clientId) throws IOException {
-        Response response = clientResource.path(clientId + "/env").request().get();
+        Response response = clientResource.path(clientId + "/env").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
         return readValue(response, ClientEnvironment.class);
     }
 
     public ApplicationStatus getApplicationStatus(String artifactId) throws IOException {
-        Response response = applicationResource.path(artifactId + "/status").request().get();
+        Response response = applicationResource.path(artifactId + "/status").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
         return readValue(response, ApplicationStatus.class);
     }
 
-    public List<Application> getAllApplications() throws IOException {
-        Response response = applicationResource.request().get();
-        return readValue(response, new TypeReference<List<Application>>() {});
-    }
-
     public ApplicationConfig getApplicationConfig(String applicationId) throws IOException {
-        Response response = applicationResource.path(applicationId + "/config").request().get();
+        Response response = applicationResource.path(applicationId + "/config").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
         return readValue(response, ApplicationConfig.class);
     }
 
+    public ApplicationConfig getApplicationEvents(String applicationId) throws IOException {
+        Response response = applicationResource.path(applicationId + "/events").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+        return readValue(response, ApplicationConfig.class);
+    }
+
+
+    public List<Application> getAllApplications() throws IOException {
+        Response response = applicationResource.request().get();
+        return readValue(response, new TypeReference<List<Application>>() {
+        });
+    }
+
+
     public Map<String, ApplicationConfig> getAllConfigs() throws IOException {
         Response response = applicationResource.path("/config").request().get();
-        return readValue(response, new TypeReference<Map<String, ApplicationConfig>>(){});
+        return readValue(response, new TypeReference<Map<String, ApplicationConfig>>() {
+        });
     }
 
     private Entity<String> jsonEntity(Object object) throws JsonProcessingException {
