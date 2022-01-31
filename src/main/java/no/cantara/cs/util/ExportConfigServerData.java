@@ -38,14 +38,13 @@ public class ExportConfigServerData {
     public void export(Path targetDirectory) throws Exception {
 
         List<Application> applications = adminClient.getAllApplications();
-        Map<String, ApplicationConfig> configs = adminClient.getAllConfigs();
+        List<ApplicationConfig> configs = adminClient.getAllConfigs();
         List<Client> clients = adminClient.getAllClients();
 
         applications.forEach(application -> writeToFile(targetDirectory.resolve(application.artifactId).resolve(application.artifactId + ".json"), application));
 
-        configs.values().stream().forEach(config -> {
-
-            String configIdentifier = config.getName() + "-" + config.getId();
+        configs.forEach(config -> {
+            final String configIdentifier = config.getName() + "-" + config.getId();
             writeToFile(targetDirectory.resolve("config/" + configIdentifier).resolve(configIdentifier + ".json"), config);
             clients.stream()
                    .filter(client -> config.getId().equals(client.applicationConfigId))

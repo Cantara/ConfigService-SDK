@@ -119,9 +119,9 @@ public class ConfigServiceAdminClient {
     }
 
 
-    public Map<String, ApplicationConfig> getAllConfigs() throws IOException {
-        Response response = applicationResource.path("/config").request().get();
-        return readValue(response, new TypeReference<Map<String, ApplicationConfig>>() {
+    public List<ApplicationConfig> getAllConfigs() throws IOException {
+        final Response response = applicationResource.path("/config").request().get();
+        return readValue(response, new TypeReference<List<ApplicationConfig>>() {
         });
     }
 
