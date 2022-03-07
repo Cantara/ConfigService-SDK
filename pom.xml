@@ -79,7 +79,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
-            <version>1.12.169</version>
+            <version>1.12.172</version>
             <exclusions>
                 <exclusion>
                     <groupId>commons-logging</groupId>
