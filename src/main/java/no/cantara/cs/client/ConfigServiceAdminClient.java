@@ -1,5 +1,7 @@
 package no.cantara.cs.client;
 
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -49,7 +51,7 @@ public class ConfigServiceAdminClient {
     public Application registerApplication(String artifactId) throws IOException {
         Application application = new Application(artifactId);
         Response response = applicationResource.request()
-                .accept(MediaType.APPLICATION_JSON_TYPE)
+                .accept(APPLICATION_JSON_TYPE)
                 .post(jsonEntity(application));
         return readValue(response, Application.class);
     }
@@ -59,17 +61,17 @@ public class ConfigServiceAdminClient {
     }
 
     public ApplicationConfig createApplicationConfig(Application application, ApplicationConfig config) throws IOException {
-        Response response = applicationResource.path(application.id + "/config/").request().post(jsonEntity(config));
+        Response response = applicationResource.path(application.id + "/config/").request().accept(new MediaType[]{MediaType.APPLICATION_JSON_TYPE}).post(jsonEntity(config));
         return readValue(response, ApplicationConfig.class);
     }
 
     public ApplicationConfig updateConfig(String applicationId, ApplicationConfig config) throws IOException {
-        Response response = applicationResource.path(applicationId + "/config/" + config.getId()).request().put(jsonEntity(config));
+        Response response = applicationResource.path(applicationId + "/config/" + config.getId()).request().accept(new MediaType[]{MediaType.APPLICATION_JSON_TYPE}).put(jsonEntity(config));
         return readValue(response, ApplicationConfig.class);
     }
 
     public void deleteConfig(String applicationId, ApplicationConfig config) throws IOException {
-        applicationResource.path(applicationId + "/config/" + config.getId()).request().delete();
+        applicationResource.path(applicationId + "/config/" + config.getId()).request().accept(new MediaType[]{MediaType.APPLICATION_JSON_TYPE}).delete();
     }
 
     public Client getClient(String clientId) throws IOException {
@@ -87,33 +89,38 @@ public class ConfigServiceAdminClient {
     }
 
     public ClientStatus getClientStatus(String clientId) throws IOException {
-        Response response = clientResource.path(clientId + "/status").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+        Response response = clientResource.path(clientId + "/status").request().accept(
+            APPLICATION_JSON_TYPE).get();
         return readValue(response, ClientStatus.class);
     }
 
     public ClientEnvironment getClientEnvironment(String clientId) throws IOException {
-        Response response = clientResource.path(clientId + "/env").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+        Response response = clientResource.path(clientId + "/env").request().accept(
+            APPLICATION_JSON_TYPE).get();
         return readValue(response, ClientEnvironment.class);
     }
 
     public ApplicationStatus getApplicationStatus(String artifactId) throws IOException {
-        Response response = applicationResource.path(artifactId + "/status").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+        Response response = applicationResource.path(artifactId + "/status").request().accept(
+            APPLICATION_JSON_TYPE).get();
         return readValue(response, ApplicationStatus.class);
     }
 
     public ApplicationConfig getApplicationConfig(String applicationId) throws IOException {
-        Response response = applicationResource.path(applicationId + "/config").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+        Response response = applicationResource.path(applicationId + "/config").request().accept(
+            APPLICATION_JSON_TYPE).get();
         return readValue(response, ApplicationConfig.class);
     }
 
     public ApplicationConfig getApplicationEvents(String applicationId) throws IOException {
-        Response response = applicationResource.path(applicationId + "/events").request().accept(MediaType.APPLICATION_JSON_TYPE).get();
+        Response response = applicationResource.path(applicationId + "/events").request().accept(
+            APPLICATION_JSON_TYPE).get();
         return readValue(response, ApplicationConfig.class);
     }
 
 
     public List<Application> getAllApplications() throws IOException {
-        Response response = applicationResource.request().get();
+        Response response = applicationResource.request().accept(new MediaType[]{MediaType.APPLICATION_JSON_TYPE}).get();
         return readValue(response, new TypeReference<List<Application>>() {
         });
     }
