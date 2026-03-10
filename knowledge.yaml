@@ -1,0 +1,21 @@
+id: configservice-sdk
+name: Config Service SDK
+version: 0.20.12-SNAPSHOT
+description: |
+  Java client SDK for the Cantara Config Service. Enables microservices to
+  register themselves with the config server, pull their configuration on
+  startup, and receive updates without restarting.
+units:
+  - id: sdk-client
+    name: SDK Client
+    type: sdk
+    description: ConfigServiceClient — main entry point for service registration and config fetch.
+    path: src/main/java/no/cantara/cs
+  - id: auto-update
+    name: Auto Update
+    type: component
+    description: Periodic configuration refresh — polls for changes and applies them at runtime.
+  - id: property-mapping
+    name: Property Mapping
+    type: component
+    description: Binds config key/value pairs from the server to application property structures.
