@@ -1,3 +1,17 @@
+kcp_version: "0.21"
+updated: "2026-06-20"
+language: en
+license: "Apache-2.0"
+indexing: private
+temporal:
+  valid_from: "2026-03-10"
+signing:
+  scheme: ed25519
+  scope: this-manifest
+  public_key: "MCowBQYDK2VwAyEAuipgusnqU9vjf3p2yPVLD/DmERT6tBbLOqEETdxAhMU="
+  signature: "https://raw.githubusercontent.com/Cantara/ConfigService-SDK/master/knowledge.yaml.sig"
+not_for: []
+
 id: configservice-sdk
 name: Config Service SDK
 version: 0.20.12-SNAPSHOT
@@ -11,11 +25,20 @@ units:
     type: sdk
     description: ConfigServiceClient — main entry point for service registration and config fetch.
     path: src/main/java/no/cantara/cs
+      content_hash:
+        algorithm: sha256
+        value: ""
   - id: auto-update
     name: Auto Update
     type: component
     description: Periodic configuration refresh — polls for changes and applies them at runtime.
+      content_hash:
+        algorithm: sha256
+        value: ""
   - id: property-mapping
     name: Property Mapping
     type: component
     description: Binds config key/value pairs from the server to application property structures.
+      content_hash:
+        algorithm: sha256
+        value: ""
