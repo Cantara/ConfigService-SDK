@@ -1,4 +1,4 @@
-kcp_version: "0.21"
+kcp_version: "0.26"
 updated: "2026-06-20"
 language: en
 license: "Apache-2.0"
@@ -25,20 +25,19 @@ units:
     type: sdk
     description: ConfigServiceClient — main entry point for service registration and config fetch.
     path: src/main/java/no/cantara/cs
-      content_hash:
-        algorithm: sha256
-        value: ""
   - id: auto-update
     name: Auto Update
     type: component
     description: Periodic configuration refresh — polls for changes and applies them at runtime.
-      content_hash:
-        algorithm: sha256
-        value: ""
   - id: property-mapping
     name: Property Mapping
     type: component
     description: Binds config key/value pairs from the server to application property structures.
-      content_hash:
-        algorithm: sha256
-        value: ""
+
+# Serving Endpoint Binding (KCP SPEC v0.26 §3.12): authoritative manifest URL
+# and authorized MCP representative. Ignored by pre-0.26 verifiers.
+serving:
+  manifest:
+    - https://raw.githubusercontent.com/Cantara/ConfigService-SDK/master/knowledge.yaml
+  mcp:
+    - https://mcp.cantara.no/mcp
