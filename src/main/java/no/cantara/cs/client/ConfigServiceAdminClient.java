@@ -1,6 +1,6 @@
 package no.cantara.cs.client;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -10,11 +10,11 @@ import no.cantara.cs.dto.Client;
 import no.cantara.cs.dto.*;
 import no.cantara.cs.util.Environment;
 
-import javax.ws.rs.client.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.DatatypeConverter;
+import jakarta.ws.rs.client.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import java.util.Base64;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -37,7 +37,7 @@ public class ConfigServiceAdminClient {
     public ConfigServiceAdminClient(String baseUrl, String username, String password) {
         mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        javax.ws.rs.client.Client restClient = ClientBuilder.newClient()
+        jakarta.ws.rs.client.Client restClient = ClientBuilder.newClient()
                 .register(new Authenticator(username, password));
 
         applicationResource = restClient.target(baseUrl).path(APPLICATION_PATH);
@@ -163,7 +163,7 @@ public class ConfigServiceAdminClient {
         private String getBasicAuthentication() {
             String token = this.user + ":" + this.password;
             try {
-                return "BASIC " + DatatypeConverter.printBase64Binary(token.getBytes("UTF-8"));
+                return "BASIC " + Base64.getEncoder().encodeToString(token.getBytes("UTF-8"));
             } catch (UnsupportedEncodingException ex) {
                 throw new IllegalStateException("Cannot encode with UTF-8", ex);
             }
